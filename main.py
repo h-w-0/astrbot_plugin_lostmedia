@@ -1,57 +1,47 @@
-import re
-import asyncio
-import requests
-from astrbot.api.event import filter, AstrMessageEvent
+import aiohttp  # 新增导入
+
+from astrbot.api.event import filter, AstrMessageEvent, MessageEventResult
 from astrbot.api.star import Context, Star, register
 from astrbot.api import logger
 
-@register("wikidot_rank", "YourName", "查询 Wikidot 用户排名", "1.0.0")
-class WikidotRank(Star):
+@register("helloworld", "YourName", "一个简单的 Hello World 插件", "1.0.0")
+class MyPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
 
-    async def _fetch(self, url: str, timeout: int = 10) -> str:
-        loop = asyncio.get_running_loop()
-        def _sync_fetch():
-            resp = requests.get(url, timeout=timeout)
-            resp.encoding = 'utf-8'
-            return resp.text
-        return await loop.run_in_executor(None, _sync_fetch)
+    async def initialize(self):
+        """可选择实现异步的插件初始化方法，当实例化该插件类之后会自动调用该方法。"""
 
-    @filter.command("user")
-    async def user_rank(self, event: AstrMessageEvent):
-        msg = event.message_str.strip()
-        parts = msg.split(maxsplit=1)
-        if len(parts) < 2:
-            yield event.plain_result("使用方法：/user <Wikidot用户名>\n示例：/user H_W")
-            return
-        username = parts[1].strip()
-        if not username:
-            yield event.plain_result("请提供有效的用户名。")
-            return
+    # ---- 原有 helloworld 指令 ----
+    @filter.command("helloworld")
+    async def helloworld(self, event: AstrMessageEvent):
+        """这是一个 hello world 指令"""
+        user_name = event.get_sender_name()
+        message_str = event.message_str
+        message_chain = event.get_messages()
+        logger.info(message_chain)
+        yield event.plain_result(f"Hello, {user_name}, 你发了 {message_str}!")
 
-        url = f"https://wikit.unitreaty.org/wikidot/rank?user={username}"
+    # ---- 新增 lmcy 指令 ----
+    @filter.command("lmcy")
+    async def lmcy(self, event: AstrMessageEvent):
+        """查询失传媒体中文维基当前成员数"""
+        url = "https://wikit.unitreaty.org/wikidot/memberlist?wiki=lostmedia&force=true"
         try:
-            html = await self._fetch(url)
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as resp:
+                    if resp.status != 200:
+                        yield event.plain_result(f"请求失败，状态码：{resp.status}")
+                        return
+                    data = await resp.json()
+                    total = data.get("totalMembers")
+                    if total is not None:
+                        yield event.plain_result(f"当前失传媒体中文维基成员数：{total}")
+                    else:
+                        yield event.plain_result("未能获取成员数信息。")
         except Exception as e:
-            logger.error(f"请求 {url} 失败: {e}")
-            yield event.plain_result(f"网络请求失败: {e}")
-            return
+            logger.error(f"请求 lmcy API 出错: {e}")
+            yield event.plain_result("发生错误，请稍后再试。")
 
-        body_match = re.search(r'<body>(.*?)</body>', html, re.DOTALL | re.IGNORECASE)
-        if not body_match:
-            yield event.plain_result("未找到排名信息，该用户可能不存在。")
-            return
-        body = body_match.group(1)
-
-        body = re.sub(r'<br\s*/?>', '\n', body, flags=re.IGNORECASE)
-        text = re.sub(r'<[^>]+>', '', body)
-        text = text.replace('&nbsp;', ' ').replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
-
-        lines = [line.strip() for line in text.split('\n') if line.strip()]
-        if not lines:
-            yield event.plain_result(f"用户 '{username}' 暂无排名记录。")
-            return
-
-        result = '\n'.join(lines)
-        yield event.plain_result(result)
+    async def terminate(self):
+        """可选择实现异步的插件销毁方法，当插件被卸载/停用时会调用。"""
