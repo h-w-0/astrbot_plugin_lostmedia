@@ -1,6 +1,6 @@
 import re
-import urllib.request
 import asyncio
+import requests
 from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star, register
 from astrbot.api import logger
@@ -11,16 +11,15 @@ class WikidotRank(Star):
         super().__init__(context)
 
     async def _fetch(self, url: str, timeout: int = 10) -> str:
-        """异步执行同步的 urllib 请求，避免阻塞事件循环"""
         loop = asyncio.get_running_loop()
         def _sync_fetch():
-            with urllib.request.urlopen(url, timeout=timeout) as resp:
-                return resp.read().decode('utf-8', errors='ignore')
+            resp = requests.get(url, timeout=timeout)
+            resp.encoding = 'utf-8'
+            return resp.text
         return await loop.run_in_executor(None, _sync_fetch)
 
     @filter.command("user")
     async def user_rank(self, event: AstrMessageEvent):
-        # 提取参数
         msg = event.message_str.strip()
         parts = msg.split(maxsplit=1)
         if len(parts) < 2:
@@ -36,22 +35,19 @@ class WikidotRank(Star):
             html = await self._fetch(url)
         except Exception as e:
             logger.error(f"请求 {url} 失败: {e}")
-            yield event.plain_result("网络请求失败，请检查网络或稍后重试。")
+            yield event.plain_result(f"网络请求失败: {e}")
             return
 
-        # 解析 HTML
         body_match = re.search(r'<body>(.*?)</body>', html, re.DOTALL | re.IGNORECASE)
         if not body_match:
             yield event.plain_result("未找到排名信息，该用户可能不存在。")
             return
         body = body_match.group(1)
 
-        # <br> 转成换行，再去掉所有 HTML 标签
         body = re.sub(r'<br\s*/?>', '\n', body, flags=re.IGNORECASE)
         text = re.sub(r'<[^>]+>', '', body)
         text = text.replace('&nbsp;', ' ').replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
 
-        # 按行处理，过滤空行
         lines = [line.strip() for line in text.split('\n') if line.strip()]
         if not lines:
             yield event.plain_result(f"用户 '{username}' 暂无排名记录。")
