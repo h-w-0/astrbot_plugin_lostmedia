@@ -143,7 +143,7 @@ class LostmediaPlugin(Star):
 
         # 格式化每条结果
         lines = [f"🔍 找到 {total_results} 条相关条目（第 {cur_page}/{total_pages} 页）:"]
-        for i, item in enumerate(results, start=1):、
+        for i, item in enumerate(results, start=1):
             if i > 1:
                 lines.append("")
             title = item.get("title", "无标题")
