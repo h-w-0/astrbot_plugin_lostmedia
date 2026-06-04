@@ -6,7 +6,7 @@ from astrbot.api.star import Context, Star, register
 from astrbot.api import logger
 
 def escape_gql_string(s: str) -> str:
-    """手动转义 GraphQL 字符串，避免中文被转成 \uXXXX"""
+    
     return '"' + s.replace('\\', '\\\\').replace('"', '\\"') + '"'
 
 @register("astrbot_plugin_lostmedia", "YourName", "失传媒体成员与条目查询", "1.0.0")
