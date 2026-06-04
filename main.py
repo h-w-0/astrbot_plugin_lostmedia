@@ -70,8 +70,8 @@ class LostmediaPlugin(Star):
         help_text = (
             "🔍 失传媒体插件帮助：\n"
             "/lmcy  — 查询失传媒体中文维基当前成员数\n"
-            "/sr <关键词>  — 语义搜索条目（支持双引号空格）\n"
-            "/srall <关键词> [页码]  — 全文搜索条目，支持分页\n"
+            "/sr <关键词>  — 模糊搜索条目标题 \n"
+            "/srall <关键词> [页码]  — 全文搜索条目内容\n"
             "/help  — 显示本帮助"
         )
         yield event.plain_result(help_text)
@@ -144,7 +144,7 @@ class LostmediaPlugin(Star):
             yield event.plain_result(f"未找到与“{keyword}”相关的条目。")
             return
 
-        lines = [f"🔍 语义搜索找到 {total_returned} 条相关条目:"]
+        lines = [f"🔍 语义模糊搜索找到 {total_returned} 条相关条目:"]
         for i, item in enumerate(results, start=1):
             if i > 1:
                 lines.append("")   # 条目间空一行
@@ -155,7 +155,8 @@ class LostmediaPlugin(Star):
 
             lines.append(f"{i}. {title}")
             if url:
-                lines.append(f"   {url}")
+                srall_url = url.replace("http://lostmedia.wikidot.com", "https://lostmediawiki.cn")
+                lines.append(f"   {srall_url}")
             if tag_str:
                 lines.append(f"   🏷️ {tag_str}")
 
