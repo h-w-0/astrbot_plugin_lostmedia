@@ -61,7 +61,7 @@ class LostmediaPlugin(Star):
         """显示插件帮助信息"""
         help_text = (
             "🔍 失传媒体插件 v2.0（Wikit GraphQL API）\n"
-            "────────────────────────\n"
+            "----------\n"
             "/sr <关键词> [页码]\n"
             "  按标题搜索条目（支持分页）\n\n"
             "/tag <标签> [页码]\n"
@@ -149,7 +149,7 @@ class LostmediaPlugin(Star):
             return
 
         lines = [f"🔍 标题搜索「{keyword}」共 {total} 条（第 {cur_page}/{total_pages} 页）:",
-                 "────────────────────────"]
+                 "----------"]
         for i, item in enumerate(nodes, start=1):
             title = item.get("title", "无标题")
             url = item.get("url", "")
@@ -250,7 +250,7 @@ class LostmediaPlugin(Star):
             return
 
         lines = [f"🏷️ 标签「{tag_name}」共 {total} 条（第 {cur_page}/{total_pages} 页）:",
-                 "────────────────────────"]
+                 "----------"]
         for i, item in enumerate(nodes, start=1):
             title = item.get("title", "无标题")
             url = item.get("url", "")
@@ -328,7 +328,7 @@ class LostmediaPlugin(Star):
         ranking = ranking[:limit]
 
         lines = [f"🏆 Lostmedia 标签排行榜（Top {len(ranking)}）:",
-                 "────────────────────────"]
+                 "----------"]
         for item in ranking:
             rank = item.get("rank", "?")
             name = item.get("name", "未知")
@@ -407,7 +407,7 @@ class LostmediaPlugin(Star):
             return
 
         lines = [f"📅 {today} 新增 {total} 条（第 {cur_page}/{total_pages} 页）:",
-                 "────────────────────────"]
+                 "----------"]
         for i, item in enumerate(nodes, start=1):
             title = item.get("title", "无标题")
             url = item.get("url", "")
