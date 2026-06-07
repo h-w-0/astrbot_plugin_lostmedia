@@ -261,7 +261,7 @@ class LostmediaPlugin(Star):
             lines.append(f"{i}. {title}")
             if display_url:
                 lines.append(f"   🔗 {display_url}")
-            lines.append(f"   ✍️ {author}  🏷️ {tag_str}")
+            lines.append(f"   页面创建者： {author}  🏷️ {tag_str}")
             if i < len(nodes):
                 lines.append("")
 
@@ -425,7 +425,7 @@ class LostmediaPlugin(Star):
             lines.append(f"{i}. {title}")
             if display_url:
                 lines.append(f"   🔗 {display_url}")
-            lines.append(f"   ✍️ {author}  🕐 {time_str}")
+            lines.append(f"   页面创建者： {author}  🕐 {time_str}")
             if i < len(nodes):
                 lines.append("")
 
