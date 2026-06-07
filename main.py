@@ -9,7 +9,7 @@ from astrbot.api import logger
 # ---------------- 常量 ----------------
 GRAPHQL_URL = "https://wikit.unitreaty.org/apiv1/graphql"
 WIKI = "lostmedia"
-PAGE_SIZE = 10
+PAGE_SIZE = 5
 
 # /sr 需要排除的 URL 路径前缀
 EXCLUDED_URL_PATTERNS = (
@@ -103,7 +103,7 @@ class LostmediaPlugin(Star):
     async def help(self, event: AstrMessageEvent):
         help_text = (
             "🔍 失传媒体插件 v2.0（Wikit GraphQL API）\n"
-            "────────────────────────\n"
+            "----------\n"
             "/sr <关键词> [页码]\n"
             "  按标题搜索条目（自动过滤管理/系统页面）\n\n"
             "/tag <标签> [页码]\n"
@@ -203,7 +203,7 @@ class LostmediaPlugin(Star):
 
         lines = [
             f"🔍 标题搜索「{keyword}」共 {total} 条（第 {page}/{total_pages} 页）:",
-            "────────────────────────",
+            "----------",
         ]
         for i, item in enumerate(nodes, start=start + 1):
             title = item.get("title", "无标题")
@@ -307,7 +307,7 @@ class LostmediaPlugin(Star):
 
         lines = [
             f"🏷️ 标签「{tag_name}」共 {total} 条（第 {cur_page}/{total_pages} 页）:",
-            "────────────────────────",
+            "----------",
         ]
         for i, item in enumerate(nodes, start=1):
             title = item.get("title", "无标题")
@@ -318,7 +318,7 @@ class LostmediaPlugin(Star):
             lines.append(f"{i}. {title}")
             if url:
                 lines.append(f"   🔗 {url}")
-            lines.append(f"   ✍️ {author}  🏷️ {tag_str}")
+            lines.append(f"     🏷️ {tag_str}")
             lines.append("")
 
         if total_pages > 1:
@@ -389,7 +389,7 @@ class LostmediaPlugin(Star):
 
         lines = [
             f"🏆 Lostmedia 标签排行榜（第 {page}/{total_pages} 页，共 {total_items} 个标签）:",
-            "────────────────────────",
+            "----------",
         ]
         for item in ranking:
             rank = item.get("rank", "?")
@@ -506,7 +506,7 @@ class LostmediaPlugin(Star):
         tz = timezone(timedelta(hours=8))
         lines = [
             f"📅 {date_str} 新增 {total} 条（第 {cur_page}/{total_pages} 页）:",
-            "────────────────────────",
+            "----------",
         ]
         for i, item in enumerate(nodes, start=1):
             title = item.get("title", "无标题")
@@ -621,7 +621,7 @@ class LostmediaPlugin(Star):
             f"📊 最近 7 天（{week_ago} ~ {today}）新增页面统计:",
             f"   📄 总计: {total_all} 条",
             f"   📝 含「起草中」标签: {total_draft} 条",
-            "────────────────────────",
+            "----------",
         ]
 
         if nodes:
