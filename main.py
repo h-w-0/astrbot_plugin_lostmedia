@@ -5,6 +5,7 @@ import shlex
 from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star, register
 from astrbot.api import logger
+import astrbot.api.message_components as Comp
 
 # ---------------- 常量 ----------------
 GRAPHQL_URL = "https://wikit.unitreaty.org/apiv1/graphql"
@@ -118,6 +119,8 @@ class LostmediaPlugin(Star):
             "  最近 7 天新增页面（含「起草中」统计）\n\n"
             "/lmcy\n"
             "  当前成员数\n\n"
+            "/img\n"
+            "  随机获取一张失传媒体图片\n\n"
             "/help\n"
             "  显示本帮助"
         )
@@ -686,3 +689,36 @@ class LostmediaPlugin(Star):
         except Exception as e:
             logger.error(f"请求成员数 API 失败: {e}")
             yield event.plain_result("发生错误，请稍后再试。")
+
+    # ============================================
+    # /img
+    # ============================================
+    @filter.command("img")
+    async def img(self, event: AstrMessageEvent):
+        """随机获取一张失传媒体图片。用法: /img"""
+        url = "https://lostmediawiki.cn/random-img.php"
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, timeout=15) as resp:
+                    if resp.status != 200:
+                        yield event.plain_result(f"请求失败，状态码：{resp.status}")
+                        return
+                    data = await resp.json()
+        except Exception as e:
+            logger.error(f"请求随机图片 API 失败: {e}")
+            yield event.plain_result("发生错误，请稍后再试。")
+            return
+    
+        deal_title = data.get("deal-title", "未知标题")
+        # 将 API 返回的 "https:\/\/..." 反斜杠转义替换为正常 URL
+        image_url = data.get("image", "").replace("\\/", "/")
+    
+        if not image_url:
+            yield event.plain_result("未获取到图片链接。")
+            return
+    
+        chain = [
+            Comp.Plain(f"{deal_title}\n"),
+            Comp.Image.fromURL(image_url),
+        ]
+        yield event.chain_result(chain)
