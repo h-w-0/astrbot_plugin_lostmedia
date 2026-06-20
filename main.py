@@ -697,161 +697,161 @@ class LostmediaPlugin(Star):
             logger.error(f"请求成员数 API 失败: {e}")
             yield event.plain_result("发生错误，请稍后再试。")
     
-        # ============================================
-        # /img — 默认排除成人/血腥内容，用户不可自定义
-        # ============================================
-        @filter.command("img")
-            async def img(self, event: AstrMessageEvent):
-                """随机获取一张失传媒体图片（自动过滤成人/血腥内容）。用法: /img"""
-                base_url = "https://lostmediawiki.cn/random-img.php"
-                exclude = "成人内容-血腥内容"
-                url = f"{base_url}?tags=-{urllib.parse.quote(exclude)}"
-            
-                try:
-                    async with aiohttp.ClientSession() as session:
-                        async with session.get(url, timeout=15) as resp:
-                            if resp.status != 200:
-                                yield event.plain_result(f"请求失败，状态码：{resp.status}")
-                                return
-                            data = await resp.json()
-                except Exception as e:
-                    logger.error(f"请求随机图片 API 失败: {e}")
-                    yield event.plain_result("发生错误，请稍后再试。")
-                    return
-            
-                deal_title = data.get("deal-title", "未知标题")
-                image_url = data.get("image", "").replace("\\/", "/")
-            
-                if not image_url:
-                    yield event.plain_result("未获取到图片链接。")
-                    return
-            
-                chain = [
-                    Comp.Plain(f"🎞️ {deal_title}\n"),
-                    Comp.Image.fromURL(image_url),
-                ]
-                yield event.chain_result(chain)
-            
-            
-            # ============================================
-            # /imgtags <标签> — 按标签搜索，无默认过滤
-            # ============================================
-            @filter.command("imgtags")
-            async def imgtags(self, event: AstrMessageEvent):
-                """按标签获取失传媒体图片。用法: /imgtags <标签>"""
-                message = event.message_str.strip()
-                try:
-                    args = shlex.split(message)
-                except ValueError:
-                    args = message.split()
-            
-                if len(args) < 2:
-                    yield event.plain_result("请提供标签名称。用法：/imgtags <标签>")
-                    return
-            
-                tag = args[1]
-                base_url = "https://lostmediawiki.cn/random-img.php"
-                url = f"{base_url}?tags={urllib.parse.quote(tag)}"
-            
-                try:
-                    async with aiohttp.ClientSession() as session:
-                        async with session.get(url, timeout=15) as resp:
-                            if resp.status != 200:
-                                yield event.plain_result(f"请求失败，状态码：{resp.status}")
-                                return
-                            data = await resp.json()
-                except Exception as e:
-                    logger.error(f"请求随机图片 API 失败: {e}")
-                    yield event.plain_result("发生错误，请稍后再试。")
-                    return
-            
-                deal_title = data.get("deal-title", "未知标题")
-                image_url = data.get("image", "").replace("\\/", "/")
-            
-                if not image_url:
-                    yield event.plain_result("未获取到图片链接。")
-                    return
-            
-                chain = [
-                    Comp.Plain(f"🎞️ {deal_title}\n"),
-                    Comp.Image.fromURL(image_url),
-                ]
-                yield event.chain_result(chain)
-            
-            
-            # ============================================
-            # /imgpage <页面> — 按 page 参数获取
-            # ============================================
-            @filter.command("imgpage")
-            async def imgpage(self, event: AstrMessageEvent):
-                """按页面 ID 获取失传媒体图片。用法: /imgpage <页面>"""
-                message = event.message_str.strip()
-                args = message.split()
-            
-                if len(args) < 2:
-                    yield event.plain_result("请提供页面 ID。用法：/imgpage <页面>")
-                    return
-            
-                page = args[1]
-                base_url = "https://lostmediawiki.cn/random-img.php"
-                url = f"{base_url}?page={urllib.parse.quote(page)}"
-            
-                try:
-                    async with aiohttp.ClientSession() as session:
-                        async with session.get(url, timeout=15) as resp:
-                            if resp.status != 200:
-                                yield event.plain_result(f"请求失败，状态码：{resp.status}")
-                                return
-                            data = await resp.json()
-                except Exception as e:
-                    logger.error(f"请求图片页面 API 失败: {e}")
-                    yield event.plain_result("发生错误，请稍后再试。")
-                    return
-            
-                deal_title = data.get("deal-title", "未知标题")
-                image_url = data.get("image", "").replace("\\/", "/")
-            
-                if not image_url:
-                    yield event.plain_result("未获取到图片链接。")
-                    return
-            
-                chain = [
-                    Comp.Plain(f"🎞️ {deal_title}\n"),
-                    Comp.Image.fromURL(image_url),
-                ]
-                yield event.chain_result(chain)
-            
-            
-            # ============================================
-            # /imginfo — 返回缓存统计信息
-            # ============================================
-            @filter.command("imginfo")
-            async def imginfo(self, event: AstrMessageEvent):
-                """查看图片缓存统计。用法: /imginfo"""
-                url = "https://lostmediawiki.cn/random-img.php?info=true"
-            
-                try:
-                    async with aiohttp.ClientSession() as session:
-                        async with session.get(url, timeout=15) as resp:
-                            if resp.status != 200:
-                                yield event.plain_result(f"请求失败，状态码：{resp.status}")
-                                return
-                            data = await resp.json()
-                except Exception as e:
-                    logger.error(f"请求图片统计信息失败: {e}")
-                    yield event.plain_result("发生错误，请稍后再试。")
-                    return
-            
-                total_pages = data.get("total_pages", "未知")
-                pages_with_info = data.get("pages_with_info", "未知")
-                pages_with_images = data.get("pages_with_images", "未知")
-                total_images = data.get("total_images", "未知")
-            
-                result = (
-                    f"📊 失传媒体图片缓存统计\n"
-                    f"----------\n"
-                    f"缓存目录总数：{total_pages}\n"
-                    f"含图缓存目录总数：{pages_with_images}\n"
-                    f"所有图片文件数：{total_images}"
-                )
-                yield event.plain_result(result)
+    # ============================================
+    # /img — 默认排除成人/血腥内容，用户不可自定义
+    # ============================================
+    @filter.command("img")
+    async def img(self, event: AstrMessageEvent):
+        """随机获取一张失传媒体图片（自动过滤成人/血腥内容）。用法: /img"""
+        base_url = "https://lostmediawiki.cn/random-img.php"
+        exclude = "成人内容-血腥内容"
+        url = f"{base_url}?tags=-{urllib.parse.quote(exclude)}"
+    
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, timeout=15) as resp:
+                    if resp.status != 200:
+                        yield event.plain_result(f"请求失败，状态码：{resp.status}")
+                        return
+                    data = await resp.json()
+        except Exception as e:
+            logger.error(f"请求随机图片 API 失败: {e}")
+            yield event.plain_result("发生错误，请稍后再试。")
+            return
+    
+        deal_title = data.get("deal-title", "未知标题")
+        image_url = data.get("image", "").replace("\\/", "/")
+    
+        if not image_url:
+            yield event.plain_result("未获取到图片链接。")
+            return
+    
+        chain = [
+            Comp.Plain(f"🎞️ {deal_title}\n"),
+            Comp.Image.fromURL(image_url),
+        ]
+        yield event.chain_result(chain)
+    
+    
+    # ============================================
+    # /imgtags <标签> — 按标签搜索，无默认过滤
+    # ============================================
+    @filter.command("imgtags")
+    async def imgtags(self, event: AstrMessageEvent):
+        """按标签获取失传媒体图片。用法: /imgtags <标签>"""
+        message = event.message_str.strip()
+        try:
+            args = shlex.split(message)
+        except ValueError:
+            args = message.split()
+    
+        if len(args) < 2:
+            yield event.plain_result("请提供标签名称。用法：/imgtags <标签>")
+            return
+    
+        tag = args[1]
+        base_url = "https://lostmediawiki.cn/random-img.php"
+        url = f"{base_url}?tags={urllib.parse.quote(tag)}"
+    
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, timeout=15) as resp:
+                    if resp.status != 200:
+                        yield event.plain_result(f"请求失败，状态码：{resp.status}")
+                        return
+                    data = await resp.json()
+        except Exception as e:
+            logger.error(f"请求随机图片 API 失败: {e}")
+            yield event.plain_result("发生错误，请稍后再试。")
+            return
+    
+        deal_title = data.get("deal-title", "未知标题")
+        image_url = data.get("image", "").replace("\\/", "/")
+    
+        if not image_url:
+            yield event.plain_result("未获取到图片链接。")
+            return
+    
+        chain = [
+            Comp.Plain(f"🎞️ {deal_title}\n"),
+            Comp.Image.fromURL(image_url),
+        ]
+        yield event.chain_result(chain)
+    
+    
+    # ============================================
+    # /imgpage <页面> — 按 page 参数获取
+    # ============================================
+    @filter.command("imgpage")
+    async def imgpage(self, event: AstrMessageEvent):
+        """按页面 ID 获取失传媒体图片。用法: /imgpage <页面>"""
+        message = event.message_str.strip()
+        args = message.split()
+    
+        if len(args) < 2:
+            yield event.plain_result("请提供页面 ID。用法：/imgpage <页面>")
+            return
+    
+        page = args[1]
+        base_url = "https://lostmediawiki.cn/random-img.php"
+        url = f"{base_url}?page={urllib.parse.quote(page)}"
+    
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, timeout=15) as resp:
+                    if resp.status != 200:
+                        yield event.plain_result(f"请求失败，状态码：{resp.status}")
+                        return
+                    data = await resp.json()
+        except Exception as e:
+            logger.error(f"请求图片页面 API 失败: {e}")
+            yield event.plain_result("发生错误，请稍后再试。")
+            return
+    
+        deal_title = data.get("deal-title", "未知标题")
+        image_url = data.get("image", "").replace("\\/", "/")
+    
+        if not image_url:
+            yield event.plain_result("未获取到图片链接。")
+            return
+    
+        chain = [
+            Comp.Plain(f"🎞️ {deal_title}\n"),
+            Comp.Image.fromURL(image_url),
+        ]
+        yield event.chain_result(chain)
+    
+    
+    # ============================================
+    # /imginfo — 返回缓存统计信息
+    # ============================================
+    @filter.command("imginfo")
+    async def imginfo(self, event: AstrMessageEvent):
+        """查看图片缓存统计。用法: /imginfo"""
+        url = "https://lostmediawiki.cn/random-img.php?info=true"
+    
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, timeout=15) as resp:
+                    if resp.status != 200:
+                        yield event.plain_result(f"请求失败，状态码：{resp.status}")
+                        return
+                    data = await resp.json()
+        except Exception as e:
+            logger.error(f"请求图片统计信息失败: {e}")
+            yield event.plain_result("发生错误，请稍后再试。")
+            return
+    
+        total_pages = data.get("total_pages", "未知")
+        pages_with_info = data.get("pages_with_info", "未知")
+        pages_with_images = data.get("pages_with_images", "未知")
+        total_images = data.get("total_images", "未知")
+    
+        result = (
+            f"📊 失传媒体图片缓存统计\n"
+            f"----------\n"
+            f"缓存目录总数：{total_pages}\n"
+            f"含图缓存目录总数：{pages_with_images}\n"
+            f"所有图片文件数：{total_images}"
+        )
+        yield event.plain_result(result)
