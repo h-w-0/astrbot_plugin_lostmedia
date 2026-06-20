@@ -706,7 +706,7 @@ class LostmediaPlugin(Star):
         base_url = "https://lostmediawiki.cn/random-img.php"
         
         # 始终追加的排除过滤
-        exclude = "成人内容-血腥内容"
+        exclude = "成人内容-血腥内容-admin"
     
         if len(args) >= 2:
             # 用户指定了标签，拼在前面
