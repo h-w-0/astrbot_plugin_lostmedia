@@ -695,8 +695,28 @@ class LostmediaPlugin(Star):
     # ============================================
     @filter.command("img")
     async def img(self, event: AstrMessageEvent):
-        """随机获取一张失传媒体图片。用法: /img"""
-        url = "https://lostmediawiki.cn/random-img.php"
+        """随机获取一张失传媒体图片。用法: /img [标签]"""
+        message = event.message_str.strip()
+        try:
+            args = shlex.split(message)
+        except ValueError:
+            args = message.split()
+    
+        base_url = "https://lostmediawiki.cn/random-img.php"
+        
+        # 始终追加的排除过滤
+        exclude = "成人内容-血腥内容"
+    
+        if len(args) >= 2:
+            # 用户指定了标签，拼在前面
+            tag = args[1]
+            tags_param = f"{tag}-{exclude}"
+        else:
+            # 只有排除过滤
+            tags_param = f"-{exclude}"
+    
+        url = f"{base_url}?tags={urllib.parse.quote(tags_param)}"
+    
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, timeout=15) as resp:
@@ -710,7 +730,6 @@ class LostmediaPlugin(Star):
             return
     
         deal_title = data.get("deal-title", "未知标题")
-        # 将 API 返回的 "https:\/\/..." 反斜杠转义替换为正常 URL
         image_url = data.get("image", "").replace("\\/", "/")
     
         if not image_url:
@@ -718,7 +737,7 @@ class LostmediaPlugin(Star):
             return
     
         chain = [
-            Comp.Plain(f"{deal_title}\n"),
+            Comp.Plain(f"📄 {deal_title}\n"),
             Comp.Image.fromURL(image_url),
         ]
         yield event.chain_result(chain)
