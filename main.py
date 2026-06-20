@@ -6,6 +6,7 @@ from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star, register
 from astrbot.api import logger
 import astrbot.api.message_components as Comp
+import urllib.parse
 
 # ---------------- 常量 ----------------
 GRAPHQL_URL = "https://wikit.unitreaty.org/apiv1/graphql"
