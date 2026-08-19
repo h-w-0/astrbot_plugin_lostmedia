@@ -704,8 +704,8 @@ class LostmediaPlugin(Star):
     async def img(self, event: AstrMessageEvent):
         """随机获取一张失传媒体图片（自动过滤成人/血腥内容）。用法: /img"""
         base_url = "https://lostmediawiki.cn/random-img.php"
-        exclude = "成人内容-血腥内容"
-        url = f"{base_url}?tags=-{urllib.parse.quote(exclude)}"
+        exclude = "-成人内容-血腥内容-admin-component"
+        url = f"{base_url}?tags={urllib.parse.quote(exclude)}"
     
         try:
             async with aiohttp.ClientSession() as session:
