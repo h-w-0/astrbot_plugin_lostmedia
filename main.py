@@ -703,7 +703,7 @@ class LostmediaPlugin(Star):
     @filter.command("img")
     async def img(self, event: AstrMessageEvent):
         """随机获取一张失传媒体图片（自动过滤成人/血腥内容）。用法: /img"""
-        base_url = "https://lostmediawiki.cn/random-img.php"
+        base_url = "https://lostmediawiki.cn/api/random-img.php"
         exclude = "-成人内容-血腥内容-admin-component"
         url = f"{base_url}?tags={urllib.parse.quote(exclude)}"
     
@@ -750,7 +750,7 @@ class LostmediaPlugin(Star):
             return
     
         tag = args[1]
-        base_url = "https://lostmediawiki.cn/random-img.php"
+        base_url = "https://lostmediawiki.cn/api/random-img.php"
         url = f"{base_url}?tags={urllib.parse.quote(tag)}"
     
         try:
@@ -793,7 +793,7 @@ class LostmediaPlugin(Star):
             return
     
         page = args[1]
-        base_url = "https://lostmediawiki.cn/random-img.php"
+        base_url = "https://lostmediawiki.cn/api/random-img.php"
         url = f"{base_url}?page={urllib.parse.quote(page)}"
     
         try:
@@ -828,7 +828,7 @@ class LostmediaPlugin(Star):
     @filter.command("imginfo")
     async def imginfo(self, event: AstrMessageEvent):
         """查看图片缓存统计。用法: /imginfo"""
-        url = "https://lostmediawiki.cn/random-img.php?info=true"
+        url = "https://lostmediawiki.cn/api/random-img.php?info=true"
     
         try:
             async with aiohttp.ClientSession() as session:
