@@ -917,13 +917,12 @@ class LostmediaPlugin(Star):
             join_str = join_dt.strftime("%Y年%m月%d日")
             output.append(f"入站时间：{join_str}（{duration_text}）")
     
-        if inlist:
-            if edit_count is not None:
-                output.append("是否参与编辑：是")
-                output.append(f"编辑页面数：{page_count}")
-                output.append(f"总编辑次数：{edit_count}")
-            else:
-                output.append("是否参与编辑：否")
+        if edit_count is not None:
+            output.append("是否参与编辑：是")
+            output.append(f"编辑页面数：{page_count}")
+            output.append(f"总编辑次数：{edit_count}")
+        else:
+            output.append("是否参与编辑：否")
     
         output.append("--------")
         output.append(f"数据更新时间：{update_time}")
