@@ -868,9 +868,13 @@ class LostmediaPlugin(Star):
         from datetime import datetime
     
         raw_name = event.message_str.strip()
-        if not raw_name:
-            yield event.plain_reply("请输入用户名，用法：/user 用户名")
+        # 建议把命令本身去掉，只取用户名
+        parts = raw_name.split(maxsplit=1)
+        if len(parts) < 2 or not parts[1].strip():
+            yield event.plain_result("请输入用户名，用法：/user 用户名")
             return
+    
+        raw_name = parts[1].strip()
     
         # url转义：空格→%20，#→%23
         encode_name = raw_name.replace(" ", "%20").replace("#", "%23")
@@ -881,10 +885,10 @@ class LostmediaPlugin(Star):
                 async with session.get(api_url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
                     data = await resp.json()
         except Exception as e:
-            yield event.plain_reply(f"请求API失败：{str(e)}")
+            yield event.plain_result(f"请求API失败：{str(e)}")
             return
     
-        name = data.get("neme", raw_name)
+        name = data.get("neme", raw_name)  # 注意：API返回的字段可能是 neme（拼写错误？）
         inlist = data.get("inlist", False)
         update_time = data.get("UpdateTime", "")
         join_ts = data.get("JoinTime")
@@ -924,4 +928,4 @@ class LostmediaPlugin(Star):
         output.append("--------")
         output.append(f"数据更新时间：{update_time}")
     
-        yield event.plain_reply("\n".join(output))
+        yield event.plain_result("\n".join(output))
