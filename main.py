@@ -863,7 +863,7 @@ class LostmediaPlugin(Star):
     # /user — 返回用户信息
     # ============================================
     @filter.command("user")
-    async def user_handler(event: MessageEvent):
+    async def user_handler(self, event: AstrMessageEvent):
         import aiohttp
         from datetime import datetime
     
