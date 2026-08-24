@@ -922,7 +922,8 @@ class LostmediaPlugin(Star):
             output.append(f"编辑页面数：{page_count}")
             output.append(f"总编辑次数：{edit_count}")
         else:
-            output.append("是否参与编辑：否")
+            if inlist:
+                output.append("是否参与编辑：否")
     
         output.append("--------")
         output.append(f"数据更新时间：{update_time}")
