@@ -128,6 +128,8 @@ class LostmediaPlugin(Star):
             "  按页面 短URL 获取失传媒体图片\n"
             "/imginfo\n"
             "  查看图片缓存统计\n\n"
+            "/user [用户名]\n"
+            "  查看用户是否入站及用户编辑次数\n\n"
             "/help\n"
             "  显示本帮助"
         )
@@ -855,3 +857,71 @@ class LostmediaPlugin(Star):
             f"所有图片文件数：{total_images}"
         )
         yield event.plain_result(result)
+
+
+    # ============================================
+    # /user — 返回用户信息
+    # ============================================
+    @filter.command("user")
+    async def user_handler(event: MessageEvent):
+        import aiohttp
+        from datetime import datetime
+    
+        raw_name = event.message_str.strip()
+        if not raw_name:
+            yield event.plain_reply("请输入用户名，用法：/user 用户名")
+            return
+    
+        # url转义：空格→%20，#→%23
+        encode_name = raw_name.replace(" ", "%20").replace("#", "%23")
+        api_url = f"https://lostmediawiki.cn/api/scrape_members/?name={encode_name}"
+    
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(api_url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                    data = await resp.json()
+        except Exception as e:
+            yield event.plain_reply(f"请求API失败：{str(e)}")
+            return
+    
+        name = data.get("neme", raw_name)
+        inlist = data.get("inlist", False)
+        update_time = data.get("UpdateTime", "")
+        join_ts = data.get("JoinTime")
+        edit_count = data.get("editCount")
+        page_count = data.get("pageCount")
+    
+        output = []
+        output.append(f"用户名：{name}")
+        output.append(f"是否入站：{'是' if inlist else '否'}")
+    
+        if inlist and join_ts is not None:
+            join_dt = datetime.fromtimestamp(join_ts)
+            now_dt = datetime.now()
+            delta = now_dt - join_dt
+            total_seconds = delta.total_seconds()
+    
+            if total_seconds < 60:
+                duration_text = "刚刚/小于1分钟"
+            elif total_seconds < 3600:
+                duration_text = f"{int(total_seconds // 60)}分钟"
+            elif total_seconds < 86400:
+                duration_text = f"{int(total_seconds // 3600)}小时"
+            else:
+                duration_text = f"{int(total_seconds // 86400)}天"
+    
+            join_str = join_dt.strftime("%Y年%m月%d日")
+            output.append(f"入站时间：{join_str}（{duration_text}）")
+    
+        if inlist:
+            if edit_count is not None:
+                output.append("是否参与编辑：是")
+                output.append(f"编辑页面数：{page_count}")
+                output.append(f"总编辑次数：{edit_count}")
+            else:
+                output.append("是否参与编辑：否")
+    
+        output.append("--------")
+        output.append(f"数据更新时间：{update_time}")
+    
+        yield event.plain_reply("\n".join(output))
