@@ -7,6 +7,7 @@ from astrbot.api.star import Context, Star, register
 from astrbot.api import logger
 import astrbot.api.message_components as Comp
 import urllib.parse
+import requests
 
 # ---------------- 常量 ----------------
 GRAPHQL_URL = "https://wikit.unitreaty.org/apiv1/graphql"
@@ -929,3 +930,37 @@ class LostmediaPlugin(Star):
         output.append(f"数据更新时间：{update_time}")
     
         yield event.plain_result("\n".join(output))
+
+    # ============================================
+    # /测速 — 测速
+    # ============================================
+    @command("测速", help_desc="/测速 [num] 对lostmedia站点测速，num范围1‑5，默认3")
+    async def lostmedia_speed_test(self, event, num: int = None):
+        # 参数处理
+        if num is None:
+            num = 3
+        else:
+            try:
+                num = int(num)
+            except ValueError:
+                await event.reply("参数必须是1~5之间的数字")
+                return
+            if not (1 <= num <= 5):
+                await event.reply("num范围只能是1‑5")
+                return
+    
+        api_url = f"https://api.shanhe.kim/API/%E7%BD%91%E7%AB%99%E6%B5%8B%E9%80%9F.php?url=lostmedia.wikidot.com&count={num}&type=json"
+        try:
+            resp = requests.get(api_url, timeout=15)
+            resp.raise_for_status()
+            data = resp.json()
+        except Exception as e:
+            await event.reply(f"测速请求失败：{str(e)}")
+            return
+    
+        msg_text = f"""测速站：lostmedia.wikidot.com
+    状态：{data.get('msg')}
+    最快加载速度：{data.get('su_kuai')}
+    最慢加载速度：{data.get('su_man')}
+    平均加载速度：{data.get('su_pj')}"""
+        await event.reply(msg_text)
