@@ -930,37 +930,3 @@ class LostmediaPlugin(Star):
         output.append(f"数据更新时间：{update_time}")
     
         yield event.plain_result("\n".join(output))
-
-    # ============================================
-    # /测速 — 测速
-    # ============================================
-    @filter.command("测速")
-    async def lostmedia_speed_test(self, event, num=None):
-        if num is None:
-            num = 3
-        else:
-            try:
-                num = int(num)
-            except ValueError:
-                event.result = "参数必须是1~5之间的数字"
-                return
-            if not (1 <= num <= 5):
-                event.result = "num范围只能是1‑5"
-                return
-
-        api_url = f"https://api.shanhe.kim/API/%E7%BD%91%E7%AB%99%E6%B5%8B%E9%80%9F.php?url=lostmedia.wikidot.com&count={num}&type=json"
-        try:
-            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15)) as session:
-                async with session.get(api_url) as resp:
-                    data = await resp.json()
-        except Exception as e:
-            event.result = f"测速请求失败：{str(e)}"
-            return
-
-        msg_text = f"""测速站：lostmedia.wikidot.com
-状态：{data.get('msg')}
-最快加载速度：{data.get('su_kuai')}
-最慢加载速度：{data.get('su_man')}
-平均加载速度：{data.get('su_pj')}"""
-        event.result = msg_text
-        return
