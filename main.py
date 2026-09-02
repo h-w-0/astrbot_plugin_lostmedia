@@ -934,7 +934,7 @@ class LostmediaPlugin(Star):
     # ============================================
     # /测速 — 测速
     # ============================================
-    @command("测速", help_desc="/测速 [num] 对lostmedia站点测速，num范围1‑5，默认3")
+    @filter.command("测速")
     async def lostmedia_speed_test(self, event, num: int = None):
         # 参数处理
         if num is None:
