@@ -930,3 +930,66 @@ class LostmediaPlugin(Star):
         output.append(f"数据更新时间：{update_time}")
     
         yield event.plain_result("\n".join(output))
+
+
+    # ============================================
+    #  /测速 [num]  —— 测速 lostmedia.wikidot.com
+    # ============================================
+    @filter.command("测速")
+    async def cesu(self, event: AstrMessageEvent):
+        """
+        对 lostmedia.wikidot.com 进行测速。
+        用法: /测速 [num]
+        [num] 选填，默认 3，范围 1~5
+        """
+        message = event.message_str.strip()
+        args = message.split()
+
+        # 解析次数，默认 3，限制 1~5
+        count = 3
+        if len(args) > 1:
+            try:
+                count = int(args[1])
+                if count < 1 or count > 5:
+                    yield event.plain_result("次数范围应为 1~5，默认 3。")
+                    return
+            except ValueError:
+                yield event.plain_result("次数应为 1~5 的整数。用法：/测速 [num]")
+                return
+
+        # 先发送提示
+        yield event.plain_result(
+            "开始测速；使用api：https://api.shanhe.kim/template/home/xianyu/doc.php?id=43"
+        )
+
+        api_url = (
+            f"https://api.shanhe.kim/API/网站测速.php"
+            f"?url=lostmedia.wikidot.com&count={count}&type=json"
+        )
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(api_url, timeout=aiohttp.ClientTimeout(total=30)) as resp:
+                    if resp.status != 200:
+                        yield event.plain_result(f"请求失败，状态码：{resp.status}")
+                        return
+                    data = await resp.json()
+        except Exception as e:
+            logger.error(f"测速 API 请求异常: {e}")
+            yield event.plain_result(f"请求异常：{e}")
+            return
+
+        # 正常返回时的字段
+        msg = data.get("msg", "未知")
+        su_kuai = data.get("su_kuai", "未知")
+        su_man = data.get("su_man", "未知")
+        su_pj = data.get("su_pj", "未知")
+
+        result = (
+            f"测速站：lostmedia.wikidot.com\n"
+            f"状态：{msg}\n"
+            f"最快加载速度：{su_kuai}\n"
+            f"最慢加载速度：{su_man}\n"
+            f"平均加载速度：{su_pj}"
+        )
+        yield event.plain_result(result)
