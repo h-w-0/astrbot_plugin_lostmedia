@@ -44,7 +44,7 @@ def format_url(url: str) -> str:
     """统一域名替换"""
     if not url:
         return ""
-    return url.replace("http://lostmedia.wikidot.com", "https://lostmediawiki.cn")
+    return url.replace("http://lostmedia.wikidot.com", "https://lostmedia.wikidot.com")
 
 
 def get_today_tz() -> str:
@@ -879,7 +879,7 @@ class LostmediaPlugin(Star):
     
         # url转义：空格→%20，#→%23
         encode_name = raw_name.replace(" ", "%20").replace("#", "%23")
-        api_url = f"https://lostmediawiki.cn/api/scrape_members/?name={encode_name}"
+        api_url = f"https://lostmedia.cn/api/scrape_members/?name={encode_name}"
     
         try:
             async with aiohttp.ClientSession() as session:
